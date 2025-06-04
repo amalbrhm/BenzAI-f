@@ -47,6 +47,10 @@ public class GeneralModel {
     /*
      * Application parameters
      */
+    //ajout
+    private IntVar nbPentagonsVar;
+    private IntVar nbHeptagonsVar;
+    //fin ajout
 
     private final int nbMaxHexagons;
 
@@ -1439,5 +1443,8 @@ public class GeneralModel {
     public void setInTestMode(boolean inTestMode) {
         isInTestMode = inTestMode;
     }
-
+    // ajout
+    public IntVar getNbPentagonsVar() { return nbPentagonsVar; }
+    public IntVar getNbHeptagonsVar() { return nbHeptagonsVar; }
+    // fin ajout
 }

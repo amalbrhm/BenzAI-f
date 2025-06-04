@@ -27,6 +27,10 @@ public class Benzenoid implements Comparable<Benzenoid> {
 
 	private final int nbCarbons;
 	private final int nbBonds;
+	// ajout
+	private int nbPentagons = 0;
+	private int nbHeptagons = 0;
+	// fin ajout
 	private final int nbHexagons;
   	private int benzdbId;
 	private int nbStraightEdges;
@@ -1286,6 +1290,14 @@ public class Benzenoid implements Comparable<Benzenoid> {
 
 	public int getBenzdbId() {
 		return benzdbId;
+	}
+
+	public int getNbPentagons() {
+		return nbPentagons;
+	}
+
+	public int getNbHeptagons() {
+		return nbHeptagons;
 	}
 
 }
