@@ -182,8 +182,8 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 	}
 
 	/***
- * 
- */
+	 *
+	 */
 	private void setPaneDimensions() {
 		this.setFitToHeight(true);
 		this.setFitToWidth(true);
@@ -430,7 +430,12 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 	 *
 	 */
 	private void generateBenzenoids() {
+		System.out.println("[DEBUG] modelPropertySet utilisé pour générer = " + getModelPropertySet().hashCode());
+
 		if (canStartGeneration) {
+			System.out.println("[CRITIQUE] Générateur utilise modelPropertySet = " + getModelPropertySet());
+			System.out.println("[CRITIQUE] Hash = " + getModelPropertySet().hashCode());
+
 			getModelPropertySet().buildModelPropertySet(getHBoxCriterions());
 			getModelPropertySet().save(defaultPropertyListFile);
 			GeneralModel.buildSolverPropertySet(hBoxesSolverCriterions);
@@ -639,7 +644,7 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 
 	public void refreshGenerationPossibility() {
 		canStartGeneration = getHBoxCriterions().stream().allMatch(HBoxCriterion::isValid)
-								&& getHBoxCriterions().stream().anyMatch(HBoxCriterion::isBounding);
+				&& getHBoxCriterions().stream().anyMatch(HBoxCriterion::isBounding);
 		buttonsBox.getChildren().remove(warningIcon);
 		if (!canStartGeneration)
 			buttonsBox.getChildren().add(warningIcon);

@@ -14,9 +14,18 @@ public class HBoxHeptagonNumberCriterion extends HBoxBoundingCriterion {
 
     @Override
     public void addPropertyExpression(ModelPropertySet modelPropertySet) {
-        if (isValid())
+        if (isValid()
+                && getFieldValue().getText() != null
+                && !getFieldValue().getText().isEmpty()
+                && getOperatorChoiceBox().getValue() != null) {
+
             modelPropertySet.getById("heptagons").addExpression(
-                    new BinaryNumericalExpression("heptagons", getOperatorChoiceBox().getValue(), Integer.decode(getFieldValue().getText()))
+                    new BinaryNumericalExpression("heptagons",
+                            getOperatorChoiceBox().getValue(),
+                            Integer.decode(getFieldValue().getText()))
             );
+        }
     }
+
+
 }

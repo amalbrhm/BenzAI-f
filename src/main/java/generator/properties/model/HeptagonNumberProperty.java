@@ -12,26 +12,29 @@ import view.generator.boxes.HBoxHeptagonNumberCriterion;
 public class HeptagonNumberProperty extends ModelProperty {
 
     public HeptagonNumberProperty() {
-        super("heptagons", "Number of heptagons", new HeptagonNumberConstraint(), new HeptagonNumberFilter());
+        super("nbheptagons", "Number of heptagons", new HeptagonNumberConstraint(), new HeptagonNumberFilter());
     }
 
-    @Override
-    public int computeHexagonNumberUpperBound() {
-        int heptagonNumberMin = Integer.MAX_VALUE;
+    public int computeUpperBound() {
+        int min = Integer.MAX_VALUE;
         for (PropertyExpression expr : this.getExpressions()) {
-            String operator = ((BinaryNumericalExpression)expr).getOperator();
-            int value = ((BinaryNumericalExpression)expr).getValue();
+            String operator = ((BinaryNumericalExpression) expr).getOperator();
+            int value = ((BinaryNumericalExpression) expr).getValue();
             if (isBoundingOperator(operator)) {
                 if ("<".equals(operator))
                     value--;
-                heptagonNumberMin = Math.min(value, heptagonNumberMin);
+                min = Math.min(value, min);
             }
         }
-        return heptagonNumberMin;
+        return min;
     }
 
     @Override
     public HBoxModelCriterion makeHBoxCriterion(ScrollPaneWithPropertyList parent, ChoiceBoxCriterion choiceBoxCriterion) {
         return new HBoxHeptagonNumberCriterion(parent, choiceBoxCriterion);
+    }
+    @Override
+    public int computeHexagonNumberUpperBound() {
+        return computeUpperBound(); // ou une version spécifique pour heptagones
     }
 }

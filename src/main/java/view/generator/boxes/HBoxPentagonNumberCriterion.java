@@ -3,7 +3,6 @@ package view.generator.boxes;
 import generator.properties.model.ModelPropertySet;
 import generator.properties.model.expression.BinaryNumericalExpression;
 import view.generator.ChoiceBoxCriterion;
-import view.generator.boxes.HBoxBoundingCriterion;
 import view.primaryStage.ScrollPaneWithPropertyList;
 
 public class HBoxPentagonNumberCriterion extends HBoxBoundingCriterion {
@@ -14,9 +13,28 @@ public class HBoxPentagonNumberCriterion extends HBoxBoundingCriterion {
 
     @Override
     public void addPropertyExpression(ModelPropertySet modelPropertySet) {
-        if (isValid())
-            modelPropertySet.getById("pentagons").addExpression(
-                    new BinaryNumericalExpression("pentagons", getOperatorChoiceBox().getValue(), Integer.decode(getFieldValue().getText()))
+        if (isValid()
+                && getFieldValue().getText() != null
+                && !getFieldValue().getText().isEmpty()
+                && getOperatorChoiceBox().getValue() != null) {
+
+            System.out.println("[DEBUG] Expression ajoutée pour nbpentagons");
+
+            if (modelPropertySet.getById("nbpentagons") == null) {
+                System.err.println("[ERREUR] nbpentagons introuvable dans modelPropertySet !");
+                return;
+            }
+
+            modelPropertySet.getById("nbpentagons").addExpression(
+                    new BinaryNumericalExpression("nbpentagons",
+                            getOperatorChoiceBox().getValue(),
+                            Integer.decode(getFieldValue().getText()))
             );
+        }
+    }
+
+    @Override
+    public boolean isBounding() {
+        return true;
     }
 }

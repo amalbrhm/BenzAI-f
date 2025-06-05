@@ -1,5 +1,6 @@
 package generator;
 
+import constraints.Cycle57MatchingConstraint;
 import generator.patterns.Pattern;
 import generator.patterns.PatternLabel;
 import generator.patterns.PatternOccurences;
@@ -19,10 +20,7 @@ import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMax;
 import org.chocosolver.solver.search.strategy.selectors.variables.FirstFail;
 import org.chocosolver.solver.search.strategy.strategy.IntStrategy;
-import org.chocosolver.solver.variables.BoolVar;
-import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.UndirectedGraphVar;
-import org.chocosolver.solver.variables.Variable;
+import org.chocosolver.solver.variables.*;
 import org.chocosolver.util.objects.graphs.UndirectedGraph;
 import solution.BenzenoidSolution;
 import utils.Couple;
@@ -48,8 +46,11 @@ public class GeneralModel {
      * Application parameters
      */
     //ajout
+    // Variables CSP supplémentaires
     private IntVar nbPentagonsVar;
     private IntVar nbHeptagonsVar;
+    private GraphVar cycle57MatchingVar;
+
     //fin ajout
 
     private final int nbMaxHexagons;
@@ -128,7 +129,18 @@ public class GeneralModel {
     private final ModelPropertySet modelPropertySet;
     private static final SolverPropertySet solverPropertySet = new SolverPropertySet();
 
+    // ajout
+    private int k;
 
+    public void setK(int k) {
+        this.k = k;
+    }
+
+    public int getK() {
+        return k;
+    }
+
+    //fin ajout
     private boolean isInTestMode = false;
 
     /*
@@ -232,6 +244,23 @@ public class GeneralModel {
         chocoModel.nbNodes(benzenoidGraphVar, nbVertices).post();
         if (applySymmetriesConstraints)
             nbClausesLexLead = ConstraintBuilder.postSymmetryBreakingConstraints(this);
+
+        // Récupération du paramètre k = nombre de fusions 5/7
+        // ou getLB() si la valeur est fixée strictement
+
+        // Ajout de la contrainte de fusion 5/7
+        //Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, k);
+        //fusion57.setGeneralModel(this);
+        //fusion57.buildVariables();
+        //fusion57.postConstraints();
+        if (GUB != null && k > 0) {
+            Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, k);
+            fusion57.setGeneralModel(this);
+            fusion57.buildVariables();
+            fusion57.postConstraints();
+        }
+
+
     }
 
     public void addVariable(Variable variable) {
@@ -293,6 +322,18 @@ public class GeneralModel {
 
         System.out.println(this.getProblem().getSolver().getDecisionPath());
         System.out.println(this.getProblem().getSolver().getFailCount() + " fails");
+        System.out.println("Paires fusionnées pour 5/7 :");
+
+        GraphVar fusionVar = getCycle57MatchingVar();
+        if (fusionVar != null) {
+            for (int i = 0; i < fusionVar.getNbMaxNodes(); i++) {
+                for (int j : fusionVar.getMandatorySuccessorsOf(i)) {
+                    if (i < j) {
+                        System.out.println("  - Fusion entre " + i + " et " + j);
+                    }
+                }
+            }
+        }
     }
 
     public String buildDescription(int index) {
@@ -1444,7 +1485,21 @@ public class GeneralModel {
         isInTestMode = inTestMode;
     }
     // ajout
-    public IntVar getNbPentagonsVar() { return nbPentagonsVar; }
-    public IntVar getNbHeptagonsVar() { return nbHeptagonsVar; }
+    public void setCycle57MatchingVar(GraphVar matchingVar) {
+        this.cycle57MatchingVar = matchingVar;
+    }
+
+    public IntVar getNbPentagonsVar() {
+        return nbPentagonsVar;
+    }
+
+    public IntVar getNbHeptagonsVar() {
+        return nbHeptagonsVar;
+    }
+
+    public GraphVar getCycle57MatchingVar() {
+        return cycle57MatchingVar;
+    }
+
     // fin ajout
 }
