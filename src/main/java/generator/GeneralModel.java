@@ -216,7 +216,7 @@ public class GeneralModel {
         nbVertices = chocoModel.intVar("nbVertices", 1, nbHexagonsCoronenoid);
 
         //  Initialisation de la variable pour le nombre de pentagones (borne max = nbMaxHexagons ou autre)
-        nbPentagonsVar = chocoModel.intVar("nbPentagons", 0, nbMaxHexagons);
+        //nbPentagonsVar = chocoModel.intVar("nbPentagons", 0, nbMaxHexagons);
 
 
     }
@@ -590,6 +590,7 @@ public class GeneralModel {
                 System.out.println("=====================================");
             }
         });
+
 
         long begin = System.currentTimeMillis();
 
