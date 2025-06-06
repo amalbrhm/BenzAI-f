@@ -272,13 +272,25 @@ public class GeneralModel {
 
         System.out.println("[DEBUG] nbpentagons (depuis ModelPropertySet) = " + nbpentagons);
 
+        // Récupération du paramètre nbheptagones = nombre de fusions 5/7 demandées
+        int nbheptagons = 0;
+        Property propHept = modelPropertySet.getById("nbheptagones");
+        if (propHept != null && propHept.hasExpressions()) {
+            ParameterizedExpression expr = (ParameterizedExpression) propHept.getExpressions().get(0);
+            String exprStr = expr.toString().replaceAll("[^0-9]", "");
+            if (!exprStr.isEmpty()) {
+                nbheptagons = Integer.parseInt(exprStr);
+            }
+        }
+
+        System.out.println("[DEBUG] nbheptagones (depuis ModelPropertySet) = " + nbheptagons);
 
         // Ajout de la contrainte de fusion 5/7
 
         System.out.println("------------------Avant appel de if ---------------- nbpentagones = "+nbpentagons);
 
-        if (GUB != null && nbpentagons > 0) {
-            Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, nbpentagons);
+        if (GUB != null && (nbpentagons > 0 || nbheptagons > 0)) {
+            Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, nbpentagons, nbheptagons);
             fusion57.setGeneralModel(this);
             fusion57.buildVariables();
             System.out.println("A-----------------Appel à build------------------------");
