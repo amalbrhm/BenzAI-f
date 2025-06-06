@@ -22,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import benzenoid.Benzenoid;
+import org.chocosolver.solver.variables.UndirectedGraphVar;
 import utils.Utils;
 import view.collections.BenzenoidCollectionPane;
 import view.collections.BenzenoidCollectionPane.DisplayType;
@@ -453,6 +454,9 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 			try {
 				model = ModelBuilder.buildModel(getModelPropertySet());
 				assert model != null;
+
+
+
 				solutionNumberLabel.textProperty().bind(model.getNbTotalSolutions().asString());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -470,6 +474,17 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 						@Override
 						protected Void call() {
 							model.solve();
+							UndirectedGraphVar matchingVar = (UndirectedGraphVar) model.getCycle57MatchingVar();
+							System.out.println("[DEBUG] === Paires utilisées pour 5/7 ===");
+
+							for (int i = 0; i < matchingVar.getNbMaxNodes(); i++) {
+								for (int j : matchingVar.getMandatoryNeighborsOf(i)) {
+									if (i < j) {
+										System.out.println("→ 6-6 transformé entre hexagone " + i + " et " + j);
+									}
+								}
+							}
+
 							System.out.println("Fin génération");
 							return null;
 						}

@@ -17,6 +17,7 @@ import benzenoid.Node;
 import nogood.*;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
+import org.chocosolver.solver.search.loop.monitors.IMonitorSolution;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMax;
 import org.chocosolver.solver.search.strategy.selectors.variables.FirstFail;
 import org.chocosolver.solver.search.strategy.strategy.IntStrategy;
@@ -183,17 +184,23 @@ public class GeneralModel {
     private void initializeVariables() {
         System.out.println("00 " + nbMaxHexagons);
         nbHexagonsReifies = new BoolVar[nbMaxHexagons + 1];
-        System.out.println("1");
         hexagonIndicesMatrix = buildHexagonIndices();
         hexagonSparseIndicesTab = buildHexagonSparseIndices(hexagonIndicesMatrix, diameter, nbHexagonsCoronenoid);
         hexagonCompactIndicesTab = buildHexagonCompactIndices(hexagonSparseIndicesTab, diameter);
         System.out.println("2");
         UndirectedGraph GLB = BoundsBuilder.buildGLB2(this);
         GUB = BoundsBuilder.buildGUB2(this);
-        //indexOutterHexagon = diameter * diameter;
+        System.out.println("[DEBUG] GUB construit avec " + GUB.getNbMaxNodes() + " sommets");
+        for (int i = 0; i < GUB.getNbMaxNodes(); i++) {
+            for (int j : GUB.getNeighborsOf(i)) {
+                if (i < j) {
+                    System.out.println("  → GUB edge: " + i + " -- " + j);
+                }
+            }
+        }
+
         System.out.println("3");
         sideSharing = buildAdjacencyMatrix();
-
 
         benzenoidGraphVar = chocoModel.graphVar("g", GLB, GUB);
 
@@ -207,9 +214,13 @@ public class GeneralModel {
         buildNeighborIndices();
 
         nbVertices = chocoModel.intVar("nbVertices", 1, nbHexagonsCoronenoid);
-        //graphDiameter = chocoModel.intVar("diameter", 0, diameter);
+
+        //  Initialisation de la variable pour le nombre de pentagones (borne max = nbMaxHexagons ou autre)
+        nbPentagonsVar = chocoModel.intVar("nbPentagons", 0, nbMaxHexagons);
+
 
     }
+
 
     private int[] buildHexagonSparseIndices(int[][] hexagonIndices, int diameter, int nbHexagonsCoronenoid) {
         int [] hexagonSparseIndices = new int[nbHexagonsCoronenoid];
@@ -226,6 +237,7 @@ public class GeneralModel {
         return hexagonSparseIndices;
     }
 
+
     private int[] buildHexagonCompactIndices(int[] hexagonSparseIndices, int diameter) {
         int [] hexagonCompactIndices = new int[diameter * diameter];
         Arrays.fill(hexagonCompactIndices, -1);
@@ -241,24 +253,38 @@ public class GeneralModel {
 
         ConstraintBuilder.postFillNodesConnection(this);
         ConstraintBuilder.postNoHolesOfSize1Constraint(this);
+
         chocoModel.nbNodes(benzenoidGraphVar, nbVertices).post();
         if (applySymmetriesConstraints)
             nbClausesLexLead = ConstraintBuilder.postSymmetryBreakingConstraints(this);
 
-        // Récupération du paramètre k = nombre de fusions 5/7
-        // ou getLB() si la valeur est fixée strictement
+
+        // Récupération du paramètre nbpentagons = nombre de fusions 5/7 demandées (1 fusion = 1 pentagone + 1 heptagone)
+        int nbpentagons = 0;
+        Property prop = modelPropertySet.getById("nbpentagons");
+        if (prop != null && prop.hasExpressions()) {
+            ParameterizedExpression expr = (ParameterizedExpression) prop.getExpressions().get(0);
+            String exprStr = expr.toString().replaceAll("[^0-9]", "");
+            if (!exprStr.isEmpty()) {
+                nbpentagons = Integer.parseInt(exprStr);
+            }
+        }
+
+        System.out.println("[DEBUG] nbpentagons (depuis ModelPropertySet) = " + nbpentagons);
+
 
         // Ajout de la contrainte de fusion 5/7
-        //Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, k);
-        //fusion57.setGeneralModel(this);
-        //fusion57.buildVariables();
-        //fusion57.postConstraints();
-        if (GUB != null && k > 0) {
-            Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, k);
+
+        System.out.println("------------------Avant appel de if ---------------- nbpentagones = "+nbpentagons);
+
+        if (GUB != null && nbpentagons > 0) {
+            Cycle57MatchingConstraint fusion57 = new Cycle57MatchingConstraint(GUB, nbpentagons);
             fusion57.setGeneralModel(this);
             fusion57.buildVariables();
+            System.out.println("A-----------------Appel à build------------------------");
             fusion57.postConstraints();
         }
+
 
 
     }
@@ -322,18 +348,20 @@ public class GeneralModel {
 
         System.out.println(this.getProblem().getSolver().getDecisionPath());
         System.out.println(this.getProblem().getSolver().getFailCount() + " fails");
-        System.out.println("Paires fusionnées pour 5/7 :");
-
         GraphVar fusionVar = getCycle57MatchingVar();
+
         if (fusionVar != null) {
+            System.out.println("Paires fusionnées (5/7) dans cette solution :");
             for (int i = 0; i < fusionVar.getNbMaxNodes(); i++) {
-                for (int j : fusionVar.getMandatorySuccessorsOf(i)) {
+                for (int j : fusionVar.getValue().getSuccessorsOf(i)) {
                     if (i < j) {
-                        System.out.println("  - Fusion entre " + i + " et " + j);
+                        System.out.println("  → Fusion 5/7 entre " + i + " et " + j);
                     }
                 }
             }
         }
+
+
     }
 
     public String buildDescription(int index) {
@@ -536,11 +564,39 @@ public class GeneralModel {
         solverResults = new SolverResults();
 
         indexSolution = 0;
+        chocoModel.getSolver().plugMonitor((IMonitorSolution) () -> {
+            GraphVar fusionVar = getCycle57MatchingVar();
+            if (fusionVar != null) {
+                System.out.println("=== Paires fusionnées (5/7) dans cette solution ===");
+                for (int i = 0; i < fusionVar.getNbMaxNodes(); i++) {
+                    for (int j : fusionVar.getMandatorySuccessorsOf(i)) {
+                        if (i < j) {
+                            System.out.println(" → Fusion entre " + i + " et " + j);
+                        }
+                    }
+                }
+                System.out.println("=====================================");
+            }
+        });
 
         long begin = System.currentTimeMillis();
 
         chocoSolver.limitSearch(() -> Stopper.STOP);
         Stopper.STOP = false;
+        chocoModel.getSolver().plugMonitor((IMonitorSolution) () -> {
+            GraphVar fusionVar = getCycle57MatchingVar();
+            if (fusionVar != null) {
+                System.out.println("=== Paires fusionnées (5/7) dans cette solution ===");
+                for (int i = 0; i < fusionVar.getNbMaxNodes(); i++) {
+                    for (int j : fusionVar.getMandatorySuccessorsOf(i)) {
+                        if (i < j) {
+                            System.out.println(" → Fusion entre " + i + " et " + j);
+                        }
+                    }
+                }
+                System.out.println("=====================================");
+            }
+        });
 
         while (chocoSolver.solve() && !generatorRun.isPaused()) {
             ArrayList<Integer> verticesSolution = buildVerticesSolution();
@@ -595,6 +651,7 @@ public class GeneralModel {
         solverResults.setNogoodsFragments();
         System.out.println("------");
         displayDegrees();
+
         return solverResults;
 
 
@@ -1499,6 +1556,14 @@ public class GeneralModel {
 
     public GraphVar getCycle57MatchingVar() {
         return cycle57MatchingVar;
+    }
+
+    public void setNbPentagonsVar(IntVar nbPentagonsVar) {
+        this.nbPentagonsVar = nbPentagonsVar;
+    }
+
+    public void setNbHeptagonsVar(IntVar nbHeptagonsVar) {
+        this.nbHeptagonsVar = nbHeptagonsVar;
     }
 
     // fin ajout

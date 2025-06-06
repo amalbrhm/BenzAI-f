@@ -48,7 +48,6 @@ public class ModelPropertySet extends PropertySet {
 	public int computeHexagonNumberUpperBound() {
 		int upperBound = Integer.MAX_VALUE;
 		for(Property property : getPropertyList()) {
-			System.out.println("1");
 			ModelProperty modelProperty = (ModelProperty) property;
 			if(modelProperty.hasExpressions()) {
 				int bound = modelProperty.computeHexagonNumberUpperBound();
