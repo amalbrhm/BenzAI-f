@@ -431,11 +431,8 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 	 *
 	 */
 	private void generateBenzenoids() {
-		System.out.println("[DEBUG] modelPropertySet utilisé pour générer = " + getModelPropertySet().hashCode());
 
 		if (canStartGeneration) {
-			System.out.println("[CRITIQUE] Générateur utilise modelPropertySet = " + getModelPropertySet());
-			System.out.println("[CRITIQUE] Hash = " + getModelPropertySet().hashCode());
 
 			getModelPropertySet().buildModelPropertySet(getHBoxCriterions());
 			getModelPropertySet().save(defaultPropertyListFile);
@@ -474,18 +471,7 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 						@Override
 						protected Void call() {
 							model.solve();
-							UndirectedGraphVar matchingVar = (UndirectedGraphVar) model.getCycle57MatchingVar();
-							System.out.println("[DEBUG] === Paires utilisées pour 5/7 ===");
 
-							for (int i = 0; i < matchingVar.getNbMaxNodes(); i++) {
-								for (int j : matchingVar.getMandatoryNeighborsOf(i)) {
-									if (i < j) {
-										System.out.println("→ 6-6 transformé entre hexagone " + i + " et " + j);
-									}
-								}
-							}
-
-							System.out.println("Fin génération");
 							return null;
 						}
 					};

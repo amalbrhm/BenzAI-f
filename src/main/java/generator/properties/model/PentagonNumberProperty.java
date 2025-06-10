@@ -18,7 +18,7 @@ public class PentagonNumberProperty extends ModelProperty {
 
     public int computeUpperBound() {
         int min = Integer.MAX_VALUE;
-        for (PropertyExpression expr : this.getExpressions()) {
+        /*for (PropertyExpression expr : this.getExpressions()) {
             String operator = ((BinaryNumericalExpression) expr).getOperator();
             int value = ((BinaryNumericalExpression) expr).getValue();
             if (isBoundingOperator(operator)) {
@@ -26,7 +26,7 @@ public class PentagonNumberProperty extends ModelProperty {
                     value--;
                 min = Math.min(value, min);
             }
-        }
+        }*/
         return min;
     }
 

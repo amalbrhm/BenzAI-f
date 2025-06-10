@@ -90,18 +90,14 @@ public class ModelPropertySet extends PropertySet {
 	 *
 	 */
 	public void buildModelPropertySet(ArrayList<HBoxCriterion> hBoxesCriterions) {
-		System.out.println("[DEBUG] === Liste des propriétés enregistrées dans ModelPropertySet ===");
-		for (Property p : getPropertyList()) {
-			System.out.println(" - " + p.getId());
-		}
-		System.out.println("====================================================");
 
 		clearAllPropertyExpressions();
 		for (HBoxCriterion box : hBoxesCriterions) {
 			if (!box.isValid())
 				return;
 			((HBoxModelCriterion)box).addPropertyExpression(this);
-			System.out.println("[DEBUG] → Expression ajoutée depuis l’interface pour : " + box.getClass().getSimpleName());
+
+			//System.out.println("[DEBUG] → Expression ajoutée depuis l’interface pour : " + box.getClass().getSimpleName());
 
 		}
 	}
