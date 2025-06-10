@@ -54,6 +54,9 @@ public class GeneralModel {
     private IntVar nbPentagonsVar;
     private IntVar nbHeptagonsVar;
     private GraphVar cycle57MatchingVar;
+    /* Booléens “e_uv” (une variable par arête possible du matching) */
+    private BoolVar[] pairEdgeBools;
+
 
     //fin ajout
 
@@ -530,21 +533,24 @@ public class GeneralModel {
     public SolverResults solve() {
         applyModelConstraints();
         //avant :
-        chocoModel.getSolver().setSearch(new IntStrategy(hexBoolVars, new FirstFail(chocoModel), new IntDomainMax()));
+        //chocoModel.getSolver().setSearch(new IntStrategy(hexBoolVars, new FirstFail(chocoModel), new IntDomainMax()));
 
         //apres ---------- stratégie de recherche ---------- */
-        // la variable graphe des paires 5/7
-       /* GraphVar pairVar = getCycle57MatchingVar();
+        BoolVar[] edgeBools = getPairEdgeBools();      // null si pas de pentagone
 
-        chocoModel.getSolver().setSearch(
-                graphVarSearch(pairVar),                       // d’abord décider l’arête 5/7
-                intVarSearch(                                  // puis les hexagones
-                        new FirstFail(chocoModel),
-                        new IntDomainMax(),
-                        hexBoolVars
-                )
-        );
-        --------------------------------------------- */
+        if (edgeBools != null) {
+            chocoModel.getSolver().setSearch(
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), edgeBools), //  paires
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars) // hexagones
+            );
+        } else {
+            chocoModel.getSolver().setSearch(
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
+            );
+        }
+
+
+
 
         for (Property modelProperty : modelPropertySet) {
             if (modelProperty.hasExpressions())
@@ -610,16 +616,20 @@ public class GeneralModel {
                 UndirectedGraph val = (UndirectedGraph) pairs.getValue();   // valeur complète
 
                 System.out.print("Paire 5/7 : ");
-                System.out.println("------- solution : nbpent = "+ nbPentagonsVar.getValue() + " nbhept = " + nbHeptagonsVar.getValue()+"---------");
-                boolean printed = false;
-                for (int u = 0; u < val.getNbMaxNodes(); u++)
-                    for (int v : val.getNeighborsOf(u))
-                        if (u < v) {                       // éviter doublon
-                            System.out.print("(" + u + " – " + v + ") ");
+                if (edgeBools == null) {
+                    System.out.println("— aucune (pentagone non demandé) —");
+                } else {
+                    boolean printed = false;
+                    for (BoolVar e : edgeBools)
+                        if (e.getValue() == 1) {
+                            String[] ids = e.getName().substring(5).split("_"); // "pair_u_v"
+                            System.out.print("(" + ids[0] + " – " + ids[1] + ") ");
                             printed = true;
                         }
-                if (!printed) System.out.print("— aucune —");
-                System.out.println();
+                    if (!printed) System.out.print("— impossible —");
+                    System.out.println();
+                }
+
 
 
 
@@ -1591,6 +1601,8 @@ public class GeneralModel {
     public void setNbHeptagonsVar(IntVar nbHeptagonsVar) {
         this.nbHeptagonsVar = nbHeptagonsVar;
     }
+    public void setPairEdgeBools(BoolVar[] arr) { this.pairEdgeBools = arr; }
+    public BoolVar[] getPairEdgeBools()         { return pairEdgeBools; }
 
     // fin ajout
 }
