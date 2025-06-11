@@ -346,7 +346,21 @@ public class GeneralModel {
 
         System.out.println(this.getProblem().getSolver().getDecisionPath());
         System.out.println(this.getProblem().getSolver().getFailCount() + " fails");
+        GraphVar pairVar = getCycle57MatchingVar();      // récupère le GraphVar
+        UndirectedGraph chosenPairs = (UndirectedGraph) pairVar.getValue();
 
+        System.out.print("Paires 5/7 retenues : ");
+        boolean found = false;
+        for (int u = 0; u < chosenPairs.getNbMaxNodes(); u++) {
+            for (int v : chosenPairs.getNeighborsOf(u)) {
+                if (u < v) {                     // éviter le doublon (u,v)/(v,u)
+                    System.out.print("(" + u + " – " + v + ") ");
+                    found = true;
+                }
+            }
+        }
+        if (!found) System.out.print("aucune");
+        System.out.println();
     }
 
     public String buildDescription(int index) {
