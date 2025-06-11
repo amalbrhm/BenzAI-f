@@ -539,10 +539,12 @@ public class GeneralModel {
         BoolVar[] edgeBools = getPairEdgeBools();      // null si pas de pentagone
 
         if (edgeBools != null) {
+
             chocoModel.getSolver().setSearch(
-                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), edgeBools), //  paires
-                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars) // hexagones
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), edgeBools),
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
             );
+
         } else {
             chocoModel.getSolver().setSearch(
                     intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
