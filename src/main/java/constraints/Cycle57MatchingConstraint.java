@@ -39,7 +39,7 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         Model m = gm.getChocoModel();
 
         int n = gubGraph.getNbMaxNodes();
-        UndirectedGraph lb = new UndirectedGraph(m, n, SetType.BITSET, false);
+        UndirectedGraph lb = new UndirectedGraph(m, n, SetType.LINKED_LIST, false);
         matchingVar = m.graphVar("cycle57Pairs", lb, gubGraph);
         gm.setCycle57MatchingVar(matchingVar);
 
@@ -92,22 +92,22 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         m.subgraph(matchingVar, gm.getGraphVar()).post();
 
         /* 3) nombre d'arêtes = nbPentagons = nbHeptagons */
-        //m.nbEdges(matchingVar, nbPent).post();
+        m.nbEdges(matchingVar, nbPent).post();
         /* 3) cardinalité ( arêtes = nbPent)  + ( nbPent = nbHept ) */
-        if (targetPentagons > 0) {           // cas « pentagones demandés »
-            // tableau BoolVar[] créé dans buildVariables
-            BoolVar[] pb = getGeneralModel().getPairEdgeBools();
-            m.nbEdges(matchingVar, nbPent).post();
-            //m.sum(pb, "=", nbPent).post();                // somme(e_uv) = nbPent
-        } else {                           // aucun pentagone demandé
-            m.arithm(nbPent, "=", 0).post();              // nbPent = 0
-        }
+        //-if (targetPentagons > 0) {           // cas « pentagones demandés »
+        //- // tableau BoolVar[] créé dans buildVariables
+        //- BoolVar[] pb = getGeneralModel().getPairEdgeBools();
+        //- m.nbEdges(matchingVar, nbPent).post();
+        //- //m.sum(pb, "=", nbPent).post();                // somme(e_uv) = nbPent
+        //-} else {                           // aucun pentagone demandé
+        //- m.arithm(nbPent, "=", 0).post();              // nbPent = 0
+        //-}
         //m.arithm(nbPent, "=", nbHept).post();             // nbPent = nbHept
 
 
         /* 4) bornes utilisateur explicites */
         if (targetPentagons > 0) {
-           //m.arithm(nbPent, "=", targetPentagons).post();
+            //m.arithm(nbPent, "=", targetPentagons).post();
         }
         if (targetHeptagons > 0) {
             //m.arithm(nbHept, "=", targetHeptagons).post();

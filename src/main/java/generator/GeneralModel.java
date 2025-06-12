@@ -276,7 +276,7 @@ public class GeneralModel {
 
         /* === 3) Contrainte de couplage 5/7 =========================== */
         Cycle57MatchingConstraint fusion57 =
-                new Cycle57MatchingConstraint(GUB, nbPentagons, nbHeptagons);
+                new Cycle57MatchingConstraint(BoundsBuilder.buildGUB2(this), nbPentagons, nbHeptagons);
         fusion57.setGeneralModel(this);
 
         System.out.println("A—FUSION : buildVariables()");
@@ -349,7 +349,7 @@ public class GeneralModel {
         GraphVar pairVar = getCycle57MatchingVar();      // récupère le GraphVar
         UndirectedGraph chosenPairs = (UndirectedGraph) pairVar.getValue();
 
-        System.out.print("Paires 5/7 retenues : ");
+        System.out.print("Paires 5/7 retenues- : ");
         boolean found = false;
         for (int u = 0; u < chosenPairs.getNbMaxNodes(); u++) {
             for (int v : chosenPairs.getNeighborsOf(u)) {
@@ -406,8 +406,8 @@ public class GeneralModel {
 
         for (int index = 0; index < benzenoidVerticesBVArray.length; index++) {
             if (benzenoidVerticesBVArray[index] != null && benzenoidVerticesBVArray[index].getValue() == 1) {
-                    hexagonsSolutions.add(index);
-                    correspondance[index] = hexagonsSolutions.size() - 1;
+                hexagonsSolutions.add(index);
+                correspondance[index] = hexagonsSolutions.size() - 1;
             }
         }
 
@@ -540,7 +540,7 @@ public class GeneralModel {
         }
         solution.setPattern(convertToPattern());
         noGoodRecorder = new NoGoodAllRecorder(this, solution);
-        noGoodRecorder.record();
+//        noGoodRecorder.record();
 
     }
 
@@ -554,11 +554,22 @@ public class GeneralModel {
 
         if (edgeBools != null) {
 
-            chocoModel.getSolver().setSearch(
-                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), edgeBools),
-                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
-            );
+            IntVar[] decisionVars = new IntVar[hexBoolVars.length+edgeBools.length];
+            int j = 0;
 
+            for (int i = 0; i < hexBoolVars.length; i++) {
+                decisionVars[j] = hexBoolVars[i];
+                j++;
+            }
+            for (int i = 0; i < edgeBools.length; i++) {
+                decisionVars[j] = edgeBools[i];
+                j++;
+            }
+            chocoModel.getSolver().setSearch(new IntStrategy(decisionVars, new FirstFail(chocoModel), new IntDomainMax()));
+//            chocoModel.getSolver().setSearch(
+//                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), decisionVars)
+//            );
+            System.out.println("PASSE");
         } else {
             chocoModel.getSolver().setSearch(
                     intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
@@ -568,10 +579,11 @@ public class GeneralModel {
 
 
 
-        for (Property modelProperty : modelPropertySet) {
-            if (modelProperty.hasExpressions())
-                ((ModelProperty) modelProperty).getConstraint().changeSolvingStrategy();
-        }
+//        for (Property modelProperty : modelPropertySet) {
+//            if (modelProperty.hasExpressions())
+//                System.out.println("ICI");
+//                ((ModelProperty) modelProperty).getConstraint().changeSolvingStrategy();
+//        }
 
         chocoSolver = chocoModel.getSolver();
         chocoSolver.limitSearch(() -> Stopper.STOP);
