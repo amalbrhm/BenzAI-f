@@ -77,6 +77,8 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         gm.setNbHeptagonsVar(nbHept);
 
         System.out.println("[DEBUG] cycle57Pairs UB size = " + matchingVar.getNbMaxNodes());
+
+
     }
 
     /* --------------------------- contraintes ------------------------ */
@@ -84,6 +86,13 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
     public void postConstraints() {
         GeneralModel gm = getGeneralModel();
         Model m = gm.getChocoModel();
+
+
+        BoolVar[] vertex = gm.getHexBoolVars();   // récupère le tableau des 0/1
+        m.arithm(vertex[0], "=", 1).post();       // impose que l’hexagone 0 est présent
+
+
+
 
         /* 1) chaque sommet incident au plus à une arête (matching) */
         m.maxDegree(matchingVar, 1).post();

@@ -540,7 +540,9 @@ public class GeneralModel {
         }
         solution.setPattern(convertToPattern());
         noGoodRecorder = new NoGoodAllRecorder(this, solution);
-//        noGoodRecorder.record();
+        //System.out.println("-------------pen ----------- = "+nbPentagonsVar.getValue());
+        //if (nbPentagonsVar.getValue() == 0)
+            //noGoodRecorder.record();
 
     }
 
@@ -657,29 +659,6 @@ public class GeneralModel {
                     if (!printed) System.out.print("— impossible —");
                     System.out.println();
                 }
-
-
-
-
-
-                /*GraphVar fusionVar = getCycle57MatchingVar();
-                if (fusionVar != null) {
-                    System.out.println("=== Paires à fusionner (5/7) dans cette solution avec graphe fusion = "+fusionVar
-                            + "=================== ");
-
-                    UndirectedGraph valueGraph = (UndirectedGraph) fusionVar.getValue();
-                    for (int i = 0; i < valueGraph.getNbMaxNodes(); i++) {
-                        System.out.println("1");
-                        for (int j : valueGraph.getNeighborsOf(i)) {
-                            System.out.println("22");
-                            if (i < j) {
-                                System.out.println("333");
-                                System.out.println(" → Fusion entre " + i + " et " + j);
-                            }
-                        }
-                    }
-                    System.out.println("=====================================");
-                }*/
 
 
                 if (verbose) {
