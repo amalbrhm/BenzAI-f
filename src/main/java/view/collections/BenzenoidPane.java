@@ -6,6 +6,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -14,6 +15,9 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
+import javafx.scene.text.Text;
 import solution.BenzenoidSolution;
 import solution.ClarCoverSolution;
 import solveur.Aromaticity;
@@ -65,6 +69,10 @@ public class BenzenoidPane extends BorderPane implements Comparable<BenzenoidPan
 
 	private HBox descriptionBox;
 
+
+
+
+
 	public BenzenoidPane(BenzenoidCollectionPane parameterPane, String solution, Group benzenoidDraw,
 			String description, ArrayList<Integer> verticesSolution, int index, boolean isDrawMolecule, boolean withDatabaseLabel) {
 
@@ -73,6 +81,8 @@ public class BenzenoidPane extends BorderPane implements Comparable<BenzenoidPan
 		this.benzenoidSetPane = parameterPane;
 
 		this.solution = solution;
+
+
 		this.benzenoidDraw = benzenoidDraw;
 		this.name = description;
 
@@ -87,8 +97,48 @@ public class BenzenoidPane extends BorderPane implements Comparable<BenzenoidPan
 
 		addItems();
 
+
 		this.verticesSolution = verticesSolution;
 		this.isDrawMolecule = isDrawMolecule;
+
+		// Nouvelle partie : mise en valeur de la paire fusionnée si elle existe
+		Benzenoid molecule = getMolecule();
+
+
+
+		if (molecule != null && molecule.getFusedPair() != null) {
+			int[] pair = molecule.getFusedPair();
+
+			for (int i = 0; i < pair.length; i++) {
+				if (pair[i] >= 2) {
+					System.out.println("ON VA DECALER , avant " + pair[i]);
+					//pair[i] += 1; // décalage
+					System.out.println("APRES DECALAGE , apres " + pair[i]);
+				} else System.out.println("PAS DE DECALAGE , pcq " + pair[i]);
+			}
+
+			for (int hexIndex : pair) {
+				if (hexIndex >= 0 && hexIndex < benzenoidDraw.getChildren().size()) {
+					Object node = benzenoidDraw.getChildren().get(hexIndex);
+					System.out.println("on a selectionne hex d'indice " + hexIndex);
+					if (node == null) {
+						System.out.println("c'est null");
+					}
+					if (!(node instanceof Polygon)) {
+						System.out.println("pas instance de polyglon");
+					}
+					if (node instanceof Polygon) {
+						Polygon hexagon = (Polygon) node;
+						System.out.println("hexaagon "+ hexagon.toString());
+						hexagon.setFill(Color.RED);
+						double centerX = hexagon.getBoundsInParent().getCenterX();
+						double centerY = hexagon.getBoundsInParent().getCenterY();
+						//Text label = new Text(centerX - 25, centerY, "5/7");
+						//benzenoidDraw.getChildren().add(label);
+					}
+				}
+			}
+		}
 
 		this.setOnMouseEntered(e -> {
 			if (!benzenoidSetPane.isLock()) {
@@ -115,7 +165,16 @@ public class BenzenoidPane extends BorderPane implements Comparable<BenzenoidPan
                                     this.getDescriptionBox().getChildren().add(imgView);
 
                                   });
+
+
     }
+
+
+
+
+	}
+	public void setHexagonsCorrespondances(int[] hexagonsCorrespondances) {
+		this.hexagonsCorrespondances = hexagonsCorrespondances;
 	}
 
 

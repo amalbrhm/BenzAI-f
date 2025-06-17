@@ -58,6 +58,13 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
                         BoolVar b_uv = gm.getBenzenoidEdges()[u][v];
                         m.arithm(p_uv, "<=", b_uv).post();               // pair -> arête présente
 
+                        //  NOUVEAU : activer les deux sommets si la paire est activée
+                        BoolVar[] vertex = gm.getHexBoolVars();
+                        m.ifThen(p_uv, m.and(
+                                m.arithm(vertex[u], "=", 1),
+                                m.arithm(vertex[v], "=", 1)
+                        ));
+
                         edgeBools.add(p_uv);
                     }
                 }
@@ -88,8 +95,8 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         Model m = gm.getChocoModel();
 
 
-        BoolVar[] vertex = gm.getHexBoolVars();   // récupère le tableau des 0/1
-        m.arithm(vertex[0], "=", 1).post();       // impose que l’hexagone 0 est présent
+        //BoolVar[] vertex = gm.getHexBoolVars();   // récupère le tableau des 0/1
+        //m.arithm(vertex[0], "=", 1).post();       // impose que l’hexagone 0 est présent
 
 
 

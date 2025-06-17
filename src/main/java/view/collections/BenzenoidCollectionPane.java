@@ -69,6 +69,7 @@ public class BenzenoidCollectionPane extends Tab {
     private BenzenoidPane hoveringPane;
 
     private boolean lock;
+    private int[] hexagonsCorrespondances;
 
     public BenzenoidCollectionPane(BenzenoidCollectionsManagerPane parent, int index, String name) {
 
@@ -381,9 +382,11 @@ protected Void call() {
 									break;
 								}
 
-                                BenzenoidPane benzenoidPane = new BenzenoidPane(collectionPane, null, group,
+            BenzenoidPane benzenoidPane = new BenzenoidPane(collectionPane, null, group,
                                         description, molecule.getVerticesSolutions(), index, false, molecule.hasCheckedDatabase());
-                                benzenoidPanes.add(benzenoidPane);
+            //benzenoidPane.setHexagonsCorrespondances(molecule.getHexagonCompactIndicesTab());
+
+            benzenoidPanes.add(benzenoidPane);
 
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -755,4 +758,8 @@ protected Void call() {
     public Console getConsole() {
         return console;
     }
+    public int[] getHexagonsCorrespondances() {
+        return hexagonsCorrespondances;
+    }
+
 }

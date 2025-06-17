@@ -271,18 +271,18 @@ public class GeneralModel {
             if (!digits.isEmpty()) nbHeptagons = Integer.parseInt(digits);
         }
 
-        System.out.println("[DEBUG] nbpentagons = " + nbPentagons +
-                " | nbheptagons = " + nbHeptagons);
+        //System.out.println("[DEBUG] nbpentagons = " + nbPentagons +
+        //        " | nbheptagons = " + nbHeptagons);
 
         /* === 3) Contrainte de couplage 5/7 =========================== */
         Cycle57MatchingConstraint fusion57 =
                 new Cycle57MatchingConstraint(BoundsBuilder.buildGUB2(this), nbPentagons, nbHeptagons);
         fusion57.setGeneralModel(this);
 
-        System.out.println("A—FUSION : buildVariables()");
+        //System.out.println("A—FUSION : buildVariables()");
         fusion57.buildVariables();
 
-        System.out.println("A—FUSION : postConstraints()");
+        //System.out.println("A—FUSION : postConstraints()");
         fusion57.postConstraints();
     }
 
@@ -346,20 +346,7 @@ public class GeneralModel {
 
         System.out.println(this.getProblem().getSolver().getDecisionPath());
         System.out.println(this.getProblem().getSolver().getFailCount() + " fails");
-        GraphVar pairVar = getCycle57MatchingVar();      // récupère le GraphVar
-        UndirectedGraph chosenPairs = (UndirectedGraph) pairVar.getValue();
 
-        System.out.print("Paires 5/7 retenues- : ");
-        boolean found = false;
-        for (int u = 0; u < chosenPairs.getNbMaxNodes(); u++) {
-            for (int v : chosenPairs.getNeighborsOf(u)) {
-                if (u < v) {                     // éviter le doublon (u,v)/(v,u)
-                    System.out.print("(" + u + " – " + v + ") ");
-                    found = true;
-                }
-            }
-        }
-        if (!found) System.out.print("aucune");
         System.out.println();
     }
 
@@ -622,6 +609,19 @@ public class GeneralModel {
                 BenzenoidSolution solverSolution = new BenzenoidSolution(GUB, nbCrowns,
                         chocoModel.getName() + indexSolution, hexagonSparseIndicesTab);
 
+
+                // Récupération de la paire 5/7 retenue
+                for (BoolVar e : edgeBools) {
+                    if (e.getValue() == 1) {
+                        String[] ids = e.getName().substring(5).split("_"); // "pair_u_v"
+                        int u = Integer.parseInt(ids[0]);
+                        int v = Integer.parseInt(ids[1]);
+                        solverSolution.setFusedPair(new int[]{u, v});
+                        molecule.setFusedPair(new int[]{u, v}); // Transmet au Benzenoid
+                        break;
+                    }
+                }
+
                 solverResults.addSolution(solverSolution, description, nbCrowns);
                 solverResults.addVerticesSolution(verticesSolution);
 
@@ -659,6 +659,21 @@ public class GeneralModel {
                     if (!printed) System.out.print("— impossible —");
                     System.out.println();
                 }
+
+                GraphVar pairVar = getCycle57MatchingVar();      // récupère le GraphVar
+                UndirectedGraph chosenPairs = (UndirectedGraph) pairVar.getValue();
+
+                System.out.print("Paires 5/7 retenues- : ");
+                boolean found = false;
+                for (int u = 0; u < chosenPairs.getNbMaxNodes(); u++) {
+                    for (int v : chosenPairs.getNeighborsOf(u)) {
+                        if (u < v) {                     // éviter le doublon (u,v)/(v,u)
+                            System.out.print("(" + u + " – " + v + ") ");
+                            found = true;
+                        }
+                    }
+                }
+                if (!found) System.out.print("aucune");
 
 
                 if (verbose) {

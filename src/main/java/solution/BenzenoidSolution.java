@@ -95,5 +95,14 @@ public class BenzenoidSolution {
 	public void setHexagonsCorrespondances(int [] hexagonsCorrespondances) {
 		this.hexagonsCorrespondances = hexagonsCorrespondances;
 	}
+	private int[] fusedPair; // la paire (i, j)
+
+	public void setFusedPair(int[] fusedPair) {
+		this.fusedPair = fusedPair;
+	}
+
+	public int[] getFusedPair() {
+		return fusedPair;
+	}
 
 }

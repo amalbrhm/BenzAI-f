@@ -44,6 +44,11 @@ public class Benzenoid implements Comparable<Benzenoid> {
 	private final int[][] hexagons;
 	private int[][] dualGraph;
 	private int[] degrees;
+	int[] hexagonCorrespondances;
+
+	public void setHexagonCorrespondances(int[] hexagonCorrespondances) {
+		this.hexagonCorrespondances = hexagonCorrespondances;
+	}
 
 	private ArrayList<ArrayList<Integer>> hexagonsVertices;
 
@@ -172,6 +177,13 @@ public class Benzenoid implements Comparable<Benzenoid> {
 	/**
 	 * Getters and setters
 	 */
+	public void computeHexagonCorrespondences() {
+		int[] correspondances = new int[getNbHexagons()];
+		for (int i = 0; i < correspondances.length; i++) {
+			correspondances[i] = i;
+		}
+		this.hexagonCorrespondances = correspondances;
+	}
 
 	public int[][] getDualGraph() {
 		return dualGraph;
@@ -1299,5 +1311,32 @@ public class Benzenoid implements Comparable<Benzenoid> {
 	public int getNbHeptagons() {
 		return nbHeptagons;
 	}
+	private int[] fusedPair;
+
+	public void setFusedPair(int[] fusedPair) {
+		this.fusedPair = fusedPair;
+	}
+
+	public int[] getFusedPair() {
+		return fusedPair;
+	}
+
+
+	public int[] getHexagonCorrespondances() {
+		return hexagonCorrespondances;
+	}
+
+	private List<int[]> fusedPairs;
+
+	public void setFusedPairs(List<int[]> pairs) {
+		this.fusedPairs = pairs;
+	}
+
+	public List<int[]> getFusedPairs() {
+		return fusedPairs;
+	}
+
+
+
 
 }
