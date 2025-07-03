@@ -4,24 +4,18 @@ import generator.GeneralModel;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.variables.BoolVar;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.GraphVar;
 import org.chocosolver.solver.variables.UndirectedGraphVar;
 import org.chocosolver.util.objects.graphs.UndirectedGraph;
 import org.chocosolver.util.objects.setDataStructures.SetType;
+
 import java.util.*;
 
-/**
- * Contrainte "Cycle57Matching" : sélectionne des couples d'hexagones disjoints
- * qui seront transformés en paires (pentagone + heptagone). Chaque couple est
- * modélisé par une arête d'un graphe de matching.
- */
 public class Cycle57MatchingConstraint extends BenzAIConstraint {
 
     private final UndirectedGraph gubGraph;
     private final int targetPentagons;
     private final int targetHeptagons;
 
-    // Variables ajoutées par la contrainte
     private UndirectedGraphVar matchingVar;
     private IntVar nbPent;
     private IntVar nbHept;
@@ -32,97 +26,124 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         this.targetHeptagons = nbHeptagons;
     }
 
-    /* --------------------------- variables --------------------------- */
     @Override
     public void buildVariables() {
         GeneralModel gm = getGeneralModel();
         Model m = gm.getChocoModel();
 
         int n = gubGraph.getNbMaxNodes();
+
+        // 1. Graphe de matching 5/7
         UndirectedGraph lb = new UndirectedGraph(m, n, SetType.LINKED_LIST, false);
         matchingVar = m.graphVar("cycle57Pairs", lb, gubGraph);
         gm.setCycle57MatchingVar(matchingVar);
 
+        // 2. Booléens pour les arêtes sélectionnées
         List<BoolVar> edgeBools = new ArrayList<>();
-        if (targetPentagons > 0) {
-            for (int u = 0; u < n; u++) {
-                for (int v : gubGraph.getNeighborsOf(u)) {
-                    if (u < v) {
-                        // 1) booléen pour u-v est la paire 5/7
-                        BoolVar p_uv = m.boolVar("pair_" + u + "_" + v);
-
-                        // 2) canaliser avec le graphe  couplage
-                        m.edgeChanneling(matchingVar, p_uv, u, v).post();
-
-                        // 3) canaliser avec l’arête du benzenoïde
-                        BoolVar b_uv = gm.getBenzenoidEdges()[u][v];
-                        m.arithm(p_uv, "<=", b_uv).post();               // pair -> arête présente
-
-                        edgeBools.add(p_uv);
-                    }
+        for (int u = 0; u < n; u++) {
+            for (int v : gubGraph.getNeighborsOf(u)) {
+                if (u < v) {
+                    BoolVar p_uv = m.boolVar("pair_" + u + "_" + v);
+                    m.edgeChanneling(matchingVar, p_uv, u, v).post();
+                    m.arithm(p_uv, "<=", gm.getBenzenoidEdges()[u][v]).post();
+                    edgeBools.add(p_uv);
                 }
             }
-            gm.setPairEdgeBools(edgeBools.toArray(new BoolVar[0]));
-        } else {
-            gm.setPairEdgeBools(null);
         }
+        gm.setPairEdgeBools(edgeBools.toArray(new BoolVar[0]));
 
-
-
-
-
+        // 3. Variables nb pentagones / heptagones
         nbPent = m.intVar("nbPentagons", 0, n);
         nbHept = m.intVar("nbHeptagons", 0, n);
         gm.setNbPentagonsVar(nbPent);
         gm.setNbHeptagonsVar(nbHept);
 
+        // 4. Variables cycle_i ∈ {5,6,7}
+        IntVar[] cycleVars = new IntVar[n];
+        for (int i = 0; i < n; i++) {
+            cycleVars[i] = m.intVar("cycle_" + i, new int[]{0, 5, 6, 7});
+        }
+        gm.setCycleVars(cycleVars);
+
         System.out.println("[DEBUG] cycle57Pairs UB size = " + matchingVar.getNbMaxNodes());
     }
 
-    /* --------------------------- contraintes ------------------------ */
     @Override
     public void postConstraints() {
         GeneralModel gm = getGeneralModel();
         Model m = gm.getChocoModel();
 
-        /* 1) chaque sommet incident au plus à une arête (matching) */
+        IntVar[] cycleVars = gm.getCycleVars();
+        int n = gubGraph.getNbMaxNodes();
+
+        // 1. Matching : max degré 1
         m.maxDegree(matchingVar, 1).post();
 
-        /* 2) matchingVar est sous-graphe de la molécule */
+        // 2. Matching ⊆ molécule
         m.subgraph(matchingVar, gm.getGraphVar()).post();
 
-        /* 3) nombre d'arêtes = nbPentagons = nbHeptagons */
+        // 3. Nombre d’arêtes = nbPent = nbHept
         m.nbEdges(matchingVar, nbPent).post();
-        /* 3) cardinalité ( arêtes = nbPent)  + ( nbPent = nbHept ) */
-        //-if (targetPentagons > 0) {           // cas « pentagones demandés »
-        //- // tableau BoolVar[] créé dans buildVariables
-        //- BoolVar[] pb = getGeneralModel().getPairEdgeBools();
-        //- m.nbEdges(matchingVar, nbPent).post();
-        //- //m.sum(pb, "=", nbPent).post();                // somme(e_uv) = nbPent
-        //-} else {                           // aucun pentagone demandé
-        //- m.arithm(nbPent, "=", 0).post();              // nbPent = 0
-        //-}
-        //m.arithm(nbPent, "=", nbHept).post();             // nbPent = nbHept
+        m.arithm(nbPent, "=", nbHept).post();
+
+       // 4. Contraintes sur les paires : diff 6 et diff entre eux
+        for (int u = 0; u < n; u++) {
+            for (int v : gubGraph.getNeighborsOf(u)) {
+                if (u < v) {
+                    BoolVar p_uv = m.boolVar("pairCycle_" + u + "_" + v);
+                    m.edgeChanneling(matchingVar, p_uv, u, v).post();
+                    m.ifThen(
+                            p_uv,
+                            m.and(
+                                    m.arithm(cycleVars[u], "!=", 6),
+                                    m.arithm(cycleVars[v], "!=", 6),
+                                    m.arithm(cycleVars[u], "!=", cycleVars[v])
+                            )
+                    );
+                    /*m.ifThen(
+                            p_uv,
+                            m.or(
+                                    m.and(
+                                            m.arithm(cycleVars[u], "=", 5),
+                                            m.arithm(cycleVars[v], "=", 7)
+                                    ),
+                                    m.and(
+                                            m.arithm(cycleVars[u], "=", 7),
+                                            m.arithm(cycleVars[v], "=", 5)
+                                    )
+                            )
+                    );*/
 
 
-        /* 4) bornes utilisateur explicites */
+
+                }
+            }
+        }
+       // 5. Contraintes cycle_i = 6 si degré = 0
+        IntVar[] degVars = new IntVar[n];
+        for (int i = 0; i < n; i++) {
+            degVars[i] = m.intVar("deg_" + i, 0, 1);
+        }
+        m.degrees(matchingVar, degVars).post();
+
+        for (int i = 0; i < n; i++) {
+            m.ifThen(
+                    m.arithm(degVars[i], "=", 1),
+                    m.arithm(cycleVars[i], "!=", 6)
+            );
+        }
+
+        // 6. Bornes utilisateur (si activées)
         if (targetPentagons > 0) {
-            //m.arithm(nbPent, "=", targetPentagons).post();
+            m.arithm(nbPent, "=", targetPentagons).post();
         }
         if (targetHeptagons > 0) {
-            //m.arithm(nbHept, "=", targetHeptagons).post();
+            m.arithm(nbHept, "=", targetHeptagons).post();
         }
-
-
-        /* 5) cohérence globale : 2*m + 1 <= n_hexagons */
-        //IntVar nHex = gm.getNbVerticesVar();
-        //IntVar lhs = nbPent.mul(2).add(1).intVar();
-        //m.arithm(lhs, "<=", nHex).post();
 
         System.out.println("[DEBUG] Cycle57MatchingConstraint postée (k=" + targetPentagons + ")");
     }
 
-    /* ---------------------------------------------------------------- */
     @Override public void addVariables()          { /* rien */ }
     @Override public void changeSolvingStrategy() { /* rien */ }
     @Override public void changeGraphVertices()   { /* rien */ }

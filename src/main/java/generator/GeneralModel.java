@@ -19,6 +19,7 @@ import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.search.loop.monitors.IMonitorSolution;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMax;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMin;
 import org.chocosolver.solver.search.strategy.selectors.variables.FirstFail;
 import org.chocosolver.solver.search.strategy.strategy.IntStrategy;
 import org.chocosolver.solver.variables.*;
@@ -139,6 +140,16 @@ public class GeneralModel {
 
     private boolean isInTestMode = false;
 
+    public IntVar[] getCycleVars() {
+        return cycleVars;
+    }
+
+    public void setCycleVars(IntVar[] cycleVars) {
+        this.cycleVars = cycleVars;
+    }
+
+    // NEW
+    private IntVar[] cycleVars;
     /*
      * Constructors
      */
@@ -346,20 +357,7 @@ public class GeneralModel {
 
         System.out.println(this.getProblem().getSolver().getDecisionPath());
         System.out.println(this.getProblem().getSolver().getFailCount() + " fails");
-        GraphVar pairVar = getCycle57MatchingVar();      // récupère le GraphVar
-        UndirectedGraph chosenPairs = (UndirectedGraph) pairVar.getValue();
 
-        System.out.print("Paires 5/7 retenues- : ");
-        boolean found = false;
-        for (int u = 0; u < chosenPairs.getNbMaxNodes(); u++) {
-            for (int v : chosenPairs.getNeighborsOf(u)) {
-                if (u < v) {                     // éviter le doublon (u,v)/(v,u)
-                    System.out.print("(" + u + " – " + v + ") ");
-                    found = true;
-                }
-            }
-        }
-        if (!found) System.out.print("aucune");
         System.out.println();
     }
 
@@ -540,7 +538,7 @@ public class GeneralModel {
         }
         solution.setPattern(convertToPattern());
         noGoodRecorder = new NoGoodAllRecorder(this, solution);
-//        noGoodRecorder.record();
+       //noGoodRecorder.record();
 
     }
 
@@ -552,7 +550,7 @@ public class GeneralModel {
         //apres ---------- stratégie de recherche ---------- */
         BoolVar[] edgeBools = getPairEdgeBools();      // null si pas de pentagone
 
-        if (edgeBools != null) {
+        /* // Ancienne enumeration if (edgeBools != null) {
 
             IntVar[] decisionVars = new IntVar[hexBoolVars.length+edgeBools.length];
             int j = 0;
@@ -574,6 +572,42 @@ public class GeneralModel {
             chocoModel.getSolver().setSearch(
                     intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), hexBoolVars)
             );
+        }*/
+        IntVar[] cycleVars = getCycleVars();
+
+
+        if (hexBoolVars != null) {
+            /*IntVar[] decisionVars = new IntVar[hexBoolVars.length+cycleVars.length];
+            int j = 0;
+
+            for (int i = 0; i < hexBoolVars.length; i++) {
+                decisionVars[j] = hexBoolVars[i];
+                j++;
+            }
+            for (int i = 0; i < cycleVars.length; i++) {
+                decisionVars[j] = cycleVars[i];
+                j++;
+            }
+
+            chocoModel.getSolver().setSearch(new IntStrategy(decisionVars, new FirstFail(chocoModel), new IntDomainMax()));
+//            chocoModel.getSolver().setSearch(
+//                    intVarSearch(new FirstFail(chocoModel), new IntDomainMax(), decisionVars)
+//            );
+*/
+            chocoModel.getSolver().setSearch(
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMin(), cycleVars)
+            );
+            System.out.println("PASSE");
+
+
+        }
+        else {
+            chocoModel.getSolver().setSearch(
+                    intVarSearch(new FirstFail(chocoModel), new IntDomainMin(), cycleVars)
+            );
+
+            System.out.println("[DEBUG] Énumération uniquement sur les cycles 5/6/7");
+            //System.out.println("cycle var "+ Arrays.toString(cycleVars));
         }
 
 
@@ -640,8 +674,6 @@ public class GeneralModel {
                 System.out.println();
 
                 /* paire 5/7 : on lit LA VALEUR COMPLETE du GraphVar */
-                GraphVar pairs = getCycle57MatchingVar();
-                UndirectedGraph val = (UndirectedGraph) pairs.getValue();   // valeur complète
 
                 System.out.print("Paire 5/7 : ");
                 if (edgeBools == null) {
