@@ -113,10 +113,10 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         m.degrees(matchingVar, degVars).post();
 
 
-// 7–8. Contraintes : xi ⇔ cycle_i ∈ {5,6,7} ; xi = 0 ⇔ cycle_i = 0
+// 7–8. Contraintes : xi <=> cycle_i app {5,6,7} ; xi = 0 <=> cycle_i = 0
         IntVar[] xVars = gm.getHexBoolVars();
         for (int i = 0; i < n; i++) {
-            // cycle_i ∈ {5,6,7}
+            // cycle_i   app {5,6,7}
             m.ifThen(
                     m.arithm(xVars[i], "=", 1),
                     m.member(cycleVars[i], new int[]{5, 6, 7})
@@ -126,7 +126,7 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
                     m.arithm(xVars[i], "=", 0),
                     m.arithm(cycleVars[i], "=", 0)
             );
-            // cycle_i ≠ 0 ⇒ x_i = 1
+            // cycle_i diff 0 <=> x_i = 1
             m.ifThen(
                     m.arithm(cycleVars[i], "!=", 0),
                     m.arithm(xVars[i], "=", 1)
