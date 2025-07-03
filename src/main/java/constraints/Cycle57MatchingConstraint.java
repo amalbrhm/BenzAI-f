@@ -112,6 +112,8 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         }
         m.degrees(matchingVar, degVars).post();
 
+
+
         for (int i = 0; i < n; i++) {
             m.ifThen(
                     m.arithm(degVars[i], "=", 1),
