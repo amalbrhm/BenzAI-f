@@ -100,20 +100,6 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
                                     m.arithm(cycleVars[u], "!=", cycleVars[v])
                             )
                     );
-                    /*m.ifThen(
-                            p_uv,
-                            m.or(
-                                    m.and(
-                                            m.arithm(cycleVars[u], "=", 5),
-                                            m.arithm(cycleVars[v], "=", 7)
-                                    ),
-                                    m.and(
-                                            m.arithm(cycleVars[u], "=", 7),
-                                            m.arithm(cycleVars[v], "=", 5)
-                                    )
-                            )
-                    );*/
-
 
 
                 }
