@@ -18,6 +18,8 @@ public class ModelPropertySet extends PropertySet {
 		super();
 		setPropertyList(new ArrayList<>());
 		add(new HexagonNumberProperty());
+		add(new HeptagonNumberProperty());
+		add(new PentagonNumberProperty());
 		add(new CarbonNumberProperty());
 		add(new HydrogenNumberProperty());
 		add(new CatacondensedProperty());
@@ -49,7 +51,9 @@ public class ModelPropertySet extends PropertySet {
 			ModelProperty modelProperty = (ModelProperty) property;
 			if(modelProperty.hasExpressions()) {
 				int bound = modelProperty.computeHexagonNumberUpperBound();
+				System.out.println("[DEBUG] Borne pour " + modelProperty.getId() + " = " + bound);
 				upperBound = Math.min(upperBound, bound);
+
 			}
 		}
 		hexagonNumberUpperBound =  upperBound;
@@ -86,11 +90,15 @@ public class ModelPropertySet extends PropertySet {
 	 *
 	 */
 	public void buildModelPropertySet(ArrayList<HBoxCriterion> hBoxesCriterions) {
+
 		clearAllPropertyExpressions();
 		for (HBoxCriterion box : hBoxesCriterions) {
 			if (!box.isValid())
 				return;
 			((HBoxModelCriterion)box).addPropertyExpression(this);
+
+			//System.out.println("[DEBUG] → Expression ajoutée depuis l’interface pour : " + box.getClass().getSimpleName());
+
 		}
 	}
 

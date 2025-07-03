@@ -13,7 +13,7 @@ public enum ModelBuilder {
 			return null;
 		return new GeneralModel(modelPropertySet);
 	}
-	
+
 	/***
 	 * Checks if any given model property allows to fix the model size
 	 */
@@ -21,11 +21,12 @@ public enum ModelBuilder {
 		return !(modelPropertySet.has("hexagons") || modelPropertySet.has("carbons")
 				|| modelPropertySet.has("hydrogens")|| modelPropertySet.has("coronenoid")
 				|| modelPropertySet.has("rectangle")|| modelPropertySet.has("rhombus")
-				|| modelPropertySet.has("diameter"));
+				|| modelPropertySet.has("diameter") || modelPropertySet.has("nbpentagons")
+				|| modelPropertySet.has("nbheptagons") );
 	}
 
 	/***
-	 * 
+	 *
 	 * @param nbCrowns : number of crowns
 	 * @return a basic model for generating benzenoids
 	 */

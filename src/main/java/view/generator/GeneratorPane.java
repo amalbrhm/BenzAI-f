@@ -22,6 +22,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import benzenoid.Benzenoid;
+import org.chocosolver.solver.variables.UndirectedGraphVar;
 import utils.Utils;
 import view.collections.BenzenoidCollectionPane;
 import view.collections.BenzenoidCollectionPane.DisplayType;
@@ -182,8 +183,8 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 	}
 
 	/***
- * 
- */
+	 *
+	 */
 	private void setPaneDimensions() {
 		this.setFitToHeight(true);
 		this.setFitToWidth(true);
@@ -430,7 +431,9 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 	 *
 	 */
 	private void generateBenzenoids() {
+
 		if (canStartGeneration) {
+
 			getModelPropertySet().buildModelPropertySet(getHBoxCriterions());
 			getModelPropertySet().save(defaultPropertyListFile);
 			GeneralModel.buildSolverPropertySet(hBoxesSolverCriterions);
@@ -448,6 +451,9 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 			try {
 				model = ModelBuilder.buildModel(getModelPropertySet());
 				assert model != null;
+
+
+
 				solutionNumberLabel.textProperty().bind(model.getNbTotalSolutions().asString());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -465,7 +471,7 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 						@Override
 						protected Void call() {
 							model.solve();
-							System.out.println("Fin génération");
+
 							return null;
 						}
 					};
@@ -639,7 +645,7 @@ public class GeneratorPane extends ScrollPaneWithPropertyList {
 
 	public void refreshGenerationPossibility() {
 		canStartGeneration = getHBoxCriterions().stream().allMatch(HBoxCriterion::isValid)
-								&& getHBoxCriterions().stream().anyMatch(HBoxCriterion::isBounding);
+				&& getHBoxCriterions().stream().anyMatch(HBoxCriterion::isBounding);
 		buttonsBox.getChildren().remove(warningIcon);
 		if (!canStartGeneration)
 			buttonsBox.getChildren().add(warningIcon);
