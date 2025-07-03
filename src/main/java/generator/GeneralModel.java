@@ -337,6 +337,19 @@ public class GeneralModel {
 
     public void displaySolution(Solver solver) {
 
+
+
+
+        System.out.println("===  Solution #" + indexSolution + "  ===");
+
+        /* hexagones présents */
+        System.out.print("Hexagones : ");
+        for (int i = 0; i < benzenoidVerticesBVArray.length; i++) {
+            if (benzenoidVerticesBVArray[i] != null && benzenoidVerticesBVArray[i].getValue() == 1) {
+                System.out.print(i + " ");
+            }
+        }
+        System.out.println();
         for (int index = 0; index < hexBoolVars.length; index++) {
             if (hexBoolVars[index].getValue() == 1)
                 System.out.print(index + " ");
@@ -656,26 +669,33 @@ public class GeneralModel {
 
                 solverResults.addSolution(solverSolution, description, nbCrowns);
                 solverResults.addVerticesSolution(verticesSolution);
+                 cycleVars = getCycleVars();
+
+                BoolVar[] xVars = getHexBoolVars(); // x_i
+                int[] gubToCompact = getHexagonCompactIndicesTab();
+                System.out.println("compactes indices "+ Arrays.toString(getHexagonCompactIndicesTab()));
+                System.out.println("===  Types de cycles (corrects) ===");
+                for (int gub = 0; gub < cycleVars.length; gub++) {
+                    if (xVars[gub] != null && xVars[gub].getValue() == 1) {
+                        int compact = gubToCompact[gub];
+                            int val = cycleVars[gub].getValue();
+                            System.out.println("Hexagone compact " + compact + " → cycle = " + val);
+
+                    }
+                }
+
 
                 displaySolution(chocoSolver);
 
                 /* ------------------------------------------------------------------ */
                 /*  Affichage clair des hexagones et de la paire 5/7                  */
                 /* ------------------------------------------------------------------ */
-                System.out.println("===  Solution #" + indexSolution + "  ===");
 
-                /* hexagones présents */
-                System.out.print("Hexagones : ");
-                for (int i = 0; i < benzenoidVerticesBVArray.length; i++) {
-                    if (benzenoidVerticesBVArray[i] != null && benzenoidVerticesBVArray[i].getValue() == 1) {
-                        System.out.print(i + " ");
-                    }
-                }
                 System.out.println();
 
                 /* paire 5/7 : on lit LA VALEUR COMPLETE du GraphVar */
 
-                System.out.print("Paire 5/7 : ");
+                /*System.out.print("Paire 5/7 : ");
                 if (edgeBools == null) {
                     System.out.println("— aucune (pentagone non demandé) —");
                 } else {
@@ -688,11 +708,7 @@ public class GeneralModel {
                         }
                     if (!printed) System.out.print("— impossible —");
                     System.out.println();
-                }
-
-
-
-
+                }*/
 
                 /*GraphVar fusionVar = getCycle57MatchingVar();
                 if (fusionVar != null) {

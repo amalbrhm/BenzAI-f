@@ -141,12 +141,12 @@ public class Cycle57MatchingConstraint extends BenzAIConstraint {
         }
 
         // 6. Bornes utilisateur (si activées)
-        if (targetPentagons > 0) {
+        /*if (targetPentagons > 0) {
             m.arithm(nbPent, "=", targetPentagons).post();
         }
         if (targetHeptagons > 0) {
             m.arithm(nbHept, "=", targetHeptagons).post();
-        }
+        }*/
 
         System.out.println("[DEBUG] Cycle57MatchingConstraint postée (k=" + targetPentagons + ")");
     }
